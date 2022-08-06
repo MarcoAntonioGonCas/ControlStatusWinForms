@@ -1,0 +1,11 @@
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\bin\Debug\009-MenuPegajoso.exe.config
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\bin\Debug\009-MenuPegajoso.exe
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\bin\Debug\009-MenuPegajoso.pdb
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.csproj.AssemblyReference.cache
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.csproj.SuggestedBindingRedirects.cache
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\_009_MenuPegajoso.Form1.resources
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\_009_MenuPegajoso.Properties.Resources.resources
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.csproj.GenerateResource.cache
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.csproj.CoreCompileInputs.cache
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.exe
+C:\Users\lenovo\Cursos\C#\C# Windows Forms\009-MenuPegajoso\009-MenuPegajoso\obj\Debug\009-MenuPegajoso.pdb
