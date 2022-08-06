@@ -192,6 +192,7 @@ namespace _009_MenuPegajoso
             EliminaChildControls();
             EliminaHandles();
             this._pnlPonters.Clear();
+            this._pnlUnique = CreaPanel();
 
             if (_mutiple)
             {
