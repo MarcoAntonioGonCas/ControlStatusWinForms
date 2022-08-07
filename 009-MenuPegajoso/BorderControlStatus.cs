@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +11,11 @@ using System.Windows.Forms;
 
 namespace _009_MenuPegajoso
 {
+    public enum TipoColorAutomatico
+    {
+        ColorTexto,
+        ColorDeFondo
+    }
     public enum DirecccionBorde
     {
         Abajo,
@@ -16,9 +25,12 @@ namespace _009_MenuPegajoso
     }
     public class BorderControlStatus
     {
+        
+
         public BorderControlStatus( Control container, int tamaBorde, Type typo = null)
         {
             Control.ControlCollection controlsChild = container.Controls;
+            
             List<Control> lstControls = new List<Control>();
 
             foreach (Control control in controlsChild)
@@ -40,20 +52,49 @@ namespace _009_MenuPegajoso
                 }
             }
 
-            TamaBorde = tamaBorde;
+            _tamaBorde = tamaBorde;
 
-            this._pnlPonters = new List<Panel>();
+            this._pnlPointers = new List<Panel>();
             this._pnlUnique = CreaPanel();
             this._controls = lstControls.ToArray();
             this.Multiple = false;
             this._lugarBorde = DirecccionBorde.Abajo;
+            this._colorAuto = true;
+            this._tipoColorAutomatico = TipoColorAutomatico.ColorTexto;
+            this._colorManual = Color.Black;
+            
+            this._estiloBorde = DashStyle.Solid;
+
         }
        
         public BorderControlStatus(Control container, int tamaBorder, bool multiple, Type typo=null) : this(container, tamaBorder,typo)
         {
             this.Multiple = multiple;
+            
+        }
+        public BorderControlStatus(Control container, int tamaBorder, bool multiple,bool colorAuto,DashStyle estiloBorde, Type typo=null) : this(container, tamaBorder,typo)
+        {
+
+            
+            this._estiloBorde = estiloBorde;
+            this._colorAuto = colorAuto;
+            
+            
+            this.Multiple = multiple;
         }
        
+        private void EliminaHandles()
+        {
+            Array.ForEach(_controls, button =>
+            {
+                button.Click -= BordeUnique_Click;
+            });
+            Array.ForEach(_controls, button =>
+            {
+                button.Click -= BordeMultiple_Click;
+            });
+            
+        }
         private void EliminaChildControls()
         {
             Array.ForEach(_controls, control =>
@@ -61,55 +102,38 @@ namespace _009_MenuPegajoso
                 control.Controls.Clear();
             });
         }
-        private void EliminaHandles()
-        {
-            Array.ForEach(_controls, button =>
-            {
-                
-                button.Click -= new EventHandler(BordeUnique_Click);
-            });
-            Array.ForEach(_controls, button =>
-            {
-                button.Click -= new EventHandler(BordeMultiple_Click);
-            });
-            
-        }
         
         
         private DockStyle DirecADock(DirecccionBorde dire)
         {
             DockStyle dock = DockStyle.Bottom;
-            switch (_lugarBorde)
+            switch (dire)
             {
                 case DirecccionBorde.Abajo:
                     dock = DockStyle.Bottom;
-                    
                     break;
+
                 case DirecccionBorde.Arriba:
                     dock = DockStyle.Top;
-                    
                     break;
+
                 case DirecccionBorde.Derecha:
                     dock = DockStyle.Right;
-                    
                     break;
+
                 case DirecccionBorde.Izquierda:
                     dock = DockStyle.Left;
-                    
                     break;
-
-
-
             }
             return dock;
         }
         private void ActualizaPanel(Panel pnl)
         {
             if (pnl == null)
-            {
-                throw new NullReferenceException("El panel enviado es nulo");
-            }
+               throw new NullReferenceException("El panel enviado es nulo");
+            
             pnl.Dock = DirecADock(_lugarBorde);
+
             if (_lugarBorde == DirecccionBorde.Abajo ||
                 _lugarBorde == DirecccionBorde.Arriba)
             {
@@ -138,24 +162,93 @@ namespace _009_MenuPegajoso
                 pnl.Width = TamaBorde;
             }
 
-            
+            pnl.Paint += paintPanel_Paint;
+                        
             return pnl;
         }
-       
 
+        private GraphicsPath ObtienePahtLineaCentral(Rectangle rec,bool horizontal)
+        {
+            GraphicsPath gPath = new GraphicsPath();
+
+            Point iniLinea = new Point();
+            Point finLinea = new Point();
+            
+            if (horizontal)
+            {
+                iniLinea.X = rec.X;
+                iniLinea.Y = rec.Bottom / 2;
+                
+                finLinea.X = rec.Right;
+                finLinea.Y = rec.Bottom / 2;
+
+            }
+            else
+            {
+                iniLinea.X = rec.Right / 2;
+                iniLinea.Y = rec.Y;
+
+                finLinea.X = rec.Right / 2;
+                iniLinea.Y = rec.Bottom;
+            }
+            gPath.StartFigure();
+            gPath.AddLine(iniLinea,finLinea);
+            gPath.CloseFigure();
+
+            return gPath;
+        }
+        private void paintPanel_Paint(object sender, PaintEventArgs args)
+        {
+            //MessageBox.Show("pintando");
+            Panel pnl = (Panel)sender;  
+            Graphics grap=args.Graphics;
+
+            if(pnl.Parent.BackColor != Color.Transparent)
+                grap.Clear(pnl.Parent.BackColor);
+            
+            
+            GraphicsPath path;
+
+            if (_lugarBorde == DirecccionBorde.Abajo ||
+                _lugarBorde == DirecccionBorde.Arriba)
+                path = ObtienePahtLineaCentral(pnl.ClientRectangle, true);
+            else
+                path = ObtienePahtLineaCentral(pnl.ClientRectangle, false);
+            
+             
+            Color color;
+            if (_colorAuto)
+            {
+                if (_tipoColorAutomatico == TipoColorAutomatico.ColorTexto)
+                    
+                    color = pnl.Parent.ForeColor;
+                else
+                    color = pnl.Parent.BackColor;
+            }
+            else 
+                color = _colorManual;
+            
+            using (Pen pen = new Pen(color,pnl.Width<pnl.Height?pnl.Width:pnl.Height))
+            {
+                pen.DashStyle = _estiloBorde;
+                grap.DrawPath(pen,path);
+            }
+                
+        }
         private void ActivaBordeUnique()
         {
             Array.ForEach(_controls, button =>
             {
-                button.Click += new EventHandler(BordeUnique_Click);
+                button.Click += BordeUnique_Click;
             });
 
         }
         private void BordeUnique_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;
-            _pnlUnique.BackColor = btn.ForeColor;
-            btn.Controls.Add(_pnlUnique);
+            if (Multiple) return;
+            
+            Control control = (Control)sender;            
+            control.Controls.Add(_pnlUnique);
         }
 
 
@@ -163,11 +256,12 @@ namespace _009_MenuPegajoso
         {
             Array.ForEach(_controls, button =>
             {
-                button.Click += new EventHandler(BordeMultiple_Click);
+                button.Click += BordeMultiple_Click;
             });
         }
         private void BordeMultiple_Click(Object sender, EventArgs e)
         {
+            if (!Multiple) return;
 
             Control control = (Control)sender;
             if (control.Controls.Count > 0)
@@ -177,21 +271,25 @@ namespace _009_MenuPegajoso
             }
 
             Panel pnl = CreaPanel();
-
-            pnl.BackColor = control.ForeColor;
             control.Controls.Add(pnl);
-            _pnlPonters.Add(pnl);
+            _pnlPointers.Add(pnl);
         }
         public void Update()
         {
+            if (Block) return;
             if (_controls == null)
             {
-               
                 return;
             }
-            EliminaChildControls();
             EliminaHandles();
-            this._pnlPonters.Clear();
+            EliminaChildControls();
+            this._pnlPointers.ForEach(pointer =>
+            {
+                pointer.Paint -= paintPanel_Paint;
+            });
+            this._pnlUnique.Paint -= paintPanel_Paint;
+            this._pnlPointers.Clear();
+            
             this._pnlUnique = CreaPanel();
 
             if (_mutiple)
@@ -205,15 +303,29 @@ namespace _009_MenuPegajoso
         }
 
 
-        //Variables
+        #region Propiedades
+
+ 
         private Panel _pnlUnique;
-        private List<Panel> _pnlPonters;
+        private List<Panel> _pnlPointers;
         private Control[] _controls;
+        private int _tamaBorde;
         private bool _mutiple;
         private DirecccionBorde _lugarBorde;
+        private bool _colorAuto;
+        private Color _colorManual;
+        private DashStyle _estiloBorde;
+        private TipoColorAutomatico _tipoColorAutomatico;
+ 
+        public TipoColorAutomatico TipoColorAutomatico
+        {
+            get => _tipoColorAutomatico;
+            set
+            {
+                _tipoColorAutomatico = value;
+            }
+        }
 
-
-        //Propiedades
         public DirecccionBorde LugarBorde
         {
             get => _lugarBorde;
@@ -221,7 +333,7 @@ namespace _009_MenuPegajoso
             {
                 _lugarBorde = value;
                 ActualizaPanel(_pnlUnique);
-                _pnlPonters.ForEach(pnl => ActualizaPanel(pnl));
+                _pnlPointers.ForEach(pnl => ActualizaPanel(pnl));
             }
         }
         public bool Multiple
@@ -233,6 +345,48 @@ namespace _009_MenuPegajoso
                 Update();
             }
         }
-        public int TamaBorde { get; set; }
+
+        public bool Block = false;
+        public int TamaBorde
+        {
+            get => _tamaBorde;
+            set
+            {
+                _tamaBorde = value;
+                Update();
+            }
+        }
+        public bool ColorAuto
+        {
+            get => _colorAuto;
+            set
+            {
+                _colorAuto = value; 
+                //Update();
+            }
+        }
+
+        public Color ColorManual
+        {
+            get => _colorManual;
+            set
+            {
+                _colorManual = value;
+                //Update();
+            }
+        }
+        
+
+        public DashStyle EstiloBorde
+        {
+            get => _estiloBorde;
+            set
+            {
+                _estiloBorde = value;
+                //Update();
+            }
+        }
+
+        #endregion
     }
 }
