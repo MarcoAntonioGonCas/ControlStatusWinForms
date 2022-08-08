@@ -13,14 +13,14 @@ namespace _009_MenuPegajoso
 {
     public partial class Form1 : Form
     {
-        BorderControlStatus _buttonsActive;
+        BorderControlStatusHover _buttonsActive;
         
 
         public Form1()
         {
             InitializeComponent();
 
-            _buttonsActive = new BorderControlStatus(pnlConteBtn, 3,true,typeof(Button));
+            _buttonsActive = new BorderControlStatusHover(pnlConteBtn, 3,true,typeof(Button));
 
 
             _buttonsActive.EstiloBorde = DashStyle.Solid;
