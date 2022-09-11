@@ -53,6 +53,8 @@ namespace ControlStatus
             }
 
             _tamaBorde = tamaBorde;
+
+            InicializaColoresIni(controlsChild);
             this._pnlPointers = new List<Panel>();
             this._ctrlActive = new List<Control>();
 
@@ -84,6 +86,28 @@ namespace ControlStatus
             this.Multiple = multiple;
         }
 
+        private void InicializaColoresIni(Control.ControlCollection controls)
+        {
+            List<Color> colores = new List<Color>();
+
+            foreach(Control item in controls)
+            {
+                colores.Add(item.BackColor);
+            }
+
+            this._coloresIni = colores.ToArray();
+
+        }
+        private void LimpiaBackGroundColors()
+        {
+            if(this._controls.Length == this._coloresIni.Length)
+            {
+                for(int i = 0; i < _controls.Length; i++)
+                {
+                    _controls[i].BackColor = _coloresIni[i];
+                }
+            }
+        }
         private void EliminaHandles()
         {
             Array.ForEach(_controls, control =>
@@ -266,17 +290,15 @@ namespace ControlStatus
 
             Control control = (Control)sender;
             control.Controls.Add(_pnlUnique);
-            BackColorActiveUnico(control);
+            if(BackActive)
+                BackColorActiveUnico(control);
 
 
         }
         private void BackColorActiveUnico(Control control)
         {
 
-            Array.ForEach(_controls, controlItem =>
-            {
-                controlItem.BackColor = Color.Transparent;
-            });
+            this.LimpiaBackGroundColors();
             control.BackColor = this.ColorBackActive;
         }
 
@@ -292,7 +314,9 @@ namespace ControlStatus
             if (!Multiple) return;
 
             Control control = (Control)sender;
-            BackColorActiveMultiple(control);
+
+            if(BackActive)
+                BackColorActiveMultiple(control);
 
             if (control.Controls.Count > 0)
             {
@@ -309,7 +333,6 @@ namespace ControlStatus
                 return;
             }
 
-
             Panel pnl = CreaPanel();
             control.Controls.Add(pnl);
             _pnlPointers.Add(pnl);
@@ -317,7 +340,7 @@ namespace ControlStatus
         private void BackColorActiveMultiple(Control ctr)
         {
             Control controlExist = this._ctrlActive.FirstOrDefault(c => c == ctr);
-
+            
 
             if (controlExist == null)
             {
@@ -327,6 +350,15 @@ namespace ControlStatus
             }
             else
             {
+
+                for(int i = 0; i < _controls.Length; i++)
+                {
+                    if ( _controls[i] == controlExist )
+                    {
+                        _controls[i].BackColor = _coloresIni[i];
+                        break;
+                    }
+                }
                 _ctrlActive.Remove(controlExist);
                 ctr.BackColor = Color.Transparent;
 
@@ -348,6 +380,7 @@ namespace ControlStatus
             this._pnlUnique.Paint -= paintPanel_Paint;
             this._pnlPointers.Clear();
 
+            LimpiaBackGroundColors();
             this._pnlUnique = CreaPanel();
 
             if (_mutiple)
@@ -364,17 +397,18 @@ namespace ControlStatus
         #region Propiedades
 
 
-        private Panel _pnlUnique;
-        private List<Panel> _pnlPointers;
-        private List<Control> _ctrlActive;
-        private Control[] _controls;
-        private int _tamaBorde;
+        private Panel _pnlUnique; //panel unico sirve para el modo no multiple
+        private List<Panel> _pnlPointers; //punteros a paneles para el modo multiple
+        private List<Control> _ctrlActive; //controlesActivos para el fondo multiple
+        private Color[] _coloresIni; //colores iniciales de los controles
+        private Control[] _controls; // controles a los cuales se les pondra el borde
+        private int _tamaBorde; //tamaño del borde
 
-        private DirecccionBorde _lugarBorde;
+        private DirecccionBorde _lugarBorde;//Lugar del borde Arriba,Abajo,Izquierda,derecha
 
-        private bool _mutiple;
-        private bool _bordeAutomatico;
-        private bool _backActive;
+        private bool _mutiple; // selecciona multiple
+        private bool _bordeAutomatico; //Borde multple
+        private bool _backActive; //color de fondo al seleccionar activao
 
         private Color _colorBackActive;
         private Color _colorBorde;
