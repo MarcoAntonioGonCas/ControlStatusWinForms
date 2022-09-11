@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "009-MenuPegajoso", "009-MenuPegajoso\009-MenuPegajoso.csproj", "{8651DF17-5E13-46A8-89F0-A806D49ACFC6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlStatus", "009-MenuPegajoso\ControlStatus.csproj", "{8651DF17-5E13-46A8-89F0-A806D49ACFC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

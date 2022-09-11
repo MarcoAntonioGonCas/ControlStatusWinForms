@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace _009_MenuPegajoso
+namespace ControlStatus
 {
     public enum TipoColorAutomatico
     {
@@ -25,19 +25,19 @@ namespace _009_MenuPegajoso
     }
     public class BorderControlStatusClick
     {
-        
 
-        public BorderControlStatusClick( Control container, int tamaBorde, Type typo = null)
+
+        public BorderControlStatusClick(Control container, int tamaBorde, Type typo = null)
         {
             Control.ControlCollection controlsChild = container.Controls;
-            
+
             List<Control> lstControls = new List<Control>();
 
             foreach (Control control in controlsChild)
             {
                 if (typo == null)
                 {
-                    if(control is Button)
+                    if (control is Button)
                     {
                         lstControls.Add(control);
                     }
@@ -46,56 +46,53 @@ namespace _009_MenuPegajoso
                 {
                     if (control.GetType().Name == typo.Name)
                     {
-                       lstControls.Add(control);
+                        lstControls.Add(control);
 
                     }
                 }
             }
 
             _tamaBorde = tamaBorde;
-
             this._pnlPointers = new List<Panel>();
+            this._ctrlActive = new List<Control>();
+
             this._pnlUnique = CreaPanel();
             this._controls = lstControls.ToArray();
             this.Multiple = false;
             this._lugarBorde = DirecccionBorde.Abajo;
 
 
-            this._colorAuto = true;
+            this._bordeAutomatico = true;
             this._tipoColorAutomatico = TipoColorAutomatico.ColorTexto;
-            this._colorManual = Color.Black;
-            
-            this._estiloBorde = DashStyle.Solid;
+            this._colorBorde = Color.Black;
+
+            this._tipoBorde = DashStyle.Solid;
 
         }
-       
-        public BorderControlStatusClick(Control container, int tamaBorder, bool multiple, Type typo=null) : this(container, tamaBorder,typo)
+
+        public BorderControlStatusClick(Control container, int tamaBorder, bool multiple, Type typo = null) : this(container, tamaBorder, typo)
         {
             this.Multiple = multiple;
-            
+
         }
-        public BorderControlStatusClick(Control container, int tamaBorder, bool multiple,bool colorAuto,DashStyle estiloBorde, Type typo=null) : this(container, tamaBorder,typo)
+        public BorderControlStatusClick(Control container, int tamaBorder, bool multiple, bool colorAuto, DashStyle estiloBorde, Type typo = null) : this(container, tamaBorder, typo)
         {
 
-            
-            this._estiloBorde = estiloBorde;
-            this._colorAuto = colorAuto;
-            
-            
+
+            this._tipoBorde = estiloBorde;
+            this._bordeAutomatico = colorAuto;
             this.Multiple = multiple;
         }
-       
+
         private void EliminaHandles()
         {
-            Array.ForEach(_controls, button =>
+            Array.ForEach(_controls, control =>
             {
-                button.Click -= BordeUnique_Click;
+                control.Click -= BordeUnique_Click;
+                control.Click -= BordeMultiple_Click;
+
             });
-            Array.ForEach(_controls, button =>
-            {
-                button.Click -= BordeMultiple_Click;
-            });
-            
+
         }
         private void EliminaChildControls()
         {
@@ -104,8 +101,8 @@ namespace _009_MenuPegajoso
                 control.Controls.Clear();
             });
         }
-        
-        
+
+
         private DockStyle DirecADock(DirecccionBorde dire)
         {
             DockStyle dock = DockStyle.Bottom;
@@ -132,8 +129,8 @@ namespace _009_MenuPegajoso
         private void ActualizaPanel(Panel pnl)
         {
             if (pnl == null)
-               throw new NullReferenceException("El panel enviado es nulo");
-            
+                throw new NullReferenceException("El panel enviado es nulo");
+
             pnl.Dock = DirecADock(_lugarBorde);
 
             if (_lugarBorde == DirecccionBorde.Abajo ||
@@ -154,7 +151,7 @@ namespace _009_MenuPegajoso
 
             pnl.Dock = DirecADock(_lugarBorde);
 
-            if (_lugarBorde == DirecccionBorde.Abajo||
+            if (_lugarBorde == DirecccionBorde.Abajo ||
                 _lugarBorde == DirecccionBorde.Arriba)
             {
                 pnl.Height = TamaBorde;
@@ -165,22 +162,22 @@ namespace _009_MenuPegajoso
             }
 
             pnl.Paint += paintPanel_Paint;
-                        
+
             return pnl;
         }
 
-        private GraphicsPath ObtienePahtLineaCentral(Rectangle rec,bool horizontal)
+        private GraphicsPath ObtienePahtLineaCentral(Rectangle rec, bool horizontal)
         {
             GraphicsPath gPath = new GraphicsPath();
 
             Point iniLinea = new Point();
             Point finLinea = new Point();
-            
+
             if (horizontal)
             {
                 iniLinea.X = rec.X;
                 iniLinea.Y = rec.Bottom / 2;
-                
+
                 finLinea.X = rec.Right;
                 finLinea.Y = rec.Bottom / 2;
 
@@ -194,21 +191,28 @@ namespace _009_MenuPegajoso
                 iniLinea.Y = rec.Bottom;
             }
             gPath.StartFigure();
-            gPath.AddLine(iniLinea,finLinea);
+            gPath.AddLine(iniLinea, finLinea);
             gPath.CloseFigure();
 
             return gPath;
         }
+
+        private void paintBackControl_Paint(object sender, PaintEventArgs args)
+        {
+            args.Graphics.Clear(ColorBackActive);
+
+        }
         private void paintPanel_Paint(object sender, PaintEventArgs args)
         {
             //MessageBox.Show("pintando");
-            Panel pnl = (Panel)sender;  
-            Graphics grap=args.Graphics;
+            Panel pnl = (Panel)sender;
+            Graphics grap = args.Graphics;
 
-            if(pnl.Parent.BackColor != Color.Transparent)
+
+            if (pnl.Parent.BackColor != Color.Transparent)
                 grap.Clear(pnl.Parent.BackColor);
-            
-            
+
+
             GraphicsPath path;
 
             if (_lugarBorde == DirecccionBorde.Abajo ||
@@ -216,28 +220,38 @@ namespace _009_MenuPegajoso
                 path = ObtienePahtLineaCentral(pnl.ClientRectangle, true);
             else
                 path = ObtienePahtLineaCentral(pnl.ClientRectangle, false);
-            
-             
+
+
             Color color;
-            if (_colorAuto)
+            if (_bordeAutomatico)
             {
                 if (_tipoColorAutomatico == TipoColorAutomatico.ColorTexto)
-                    
+
                     color = pnl.Parent.ForeColor;
                 else
                     color = pnl.Parent.BackColor;
             }
-            else 
-                color = _colorManual;
-            
-            using (Pen pen = new Pen(color,pnl.Width<pnl.Height?pnl.Width:pnl.Height))
+            else
             {
-                pen.DashStyle = _estiloBorde;
-                grap.DrawPath(pen,path);
+                color = _colorBorde;
             }
-                
+
+            int menor = (pnl.Width < pnl.Height) ?
+                pnl.Width :
+                pnl.Height;
+
+            using (Pen pen = new Pen(color, TipoBorde != DashStyle.Solid ? TamaBorde / 2 :
+                menor
+               ))
+            {
+                pen.DashStyle = _tipoBorde;
+                grap.DrawPath(pen, path);
+            }
+
+
+
         }
-        private void ActivaBordeUnique()
+        private void ActivaBordeUnico()
         {
             Array.ForEach(_controls, button =>
             {
@@ -248,11 +262,23 @@ namespace _009_MenuPegajoso
         private void BordeUnique_Click(object sender, EventArgs e)
         {
             if (Multiple) return;
-            
-            Control control = (Control)sender;            
-            control.Controls.Add(_pnlUnique);
-        }
 
+
+            Control control = (Control)sender;
+            control.Controls.Add(_pnlUnique);
+            BackColorActiveUnico(control);
+
+
+        }
+        private void BackColorActiveUnico(Control control)
+        {
+
+            Array.ForEach(_controls, controlItem =>
+            {
+                controlItem.BackColor = Color.Transparent;
+            });
+            control.BackColor = this.ColorBackActive;
+        }
 
         private void ActivaBordeMultiple()
         {
@@ -266,15 +292,45 @@ namespace _009_MenuPegajoso
             if (!Multiple) return;
 
             Control control = (Control)sender;
+            BackColorActiveMultiple(control);
+
             if (control.Controls.Count > 0)
             {
-                control.Controls.Clear();
+                foreach (var item in control.Controls)
+                {
+                    if (item is Panel)
+                    {
+                        ((Panel)item).Paint -= paintPanel_Paint;
+                        _pnlPointers.Remove((Panel)item);
+                        control.Controls.Remove((Panel)item);
+                        break;
+                    }
+                }
                 return;
             }
+
 
             Panel pnl = CreaPanel();
             control.Controls.Add(pnl);
             _pnlPointers.Add(pnl);
+        }
+        private void BackColorActiveMultiple(Control ctr)
+        {
+            Control controlExist = this._ctrlActive.FirstOrDefault(c => c == ctr);
+
+
+            if (controlExist == null)
+            {
+
+                ctr.BackColor = ColorBackActive;
+                _ctrlActive.Add(ctr);
+            }
+            else
+            {
+                _ctrlActive.Remove(controlExist);
+                ctr.BackColor = Color.Transparent;
+
+            }
         }
         public void Update()
         {
@@ -291,7 +347,7 @@ namespace _009_MenuPegajoso
             });
             this._pnlUnique.Paint -= paintPanel_Paint;
             this._pnlPointers.Clear();
-            
+
             this._pnlUnique = CreaPanel();
 
             if (_mutiple)
@@ -300,25 +356,32 @@ namespace _009_MenuPegajoso
             }
             else
             {
-                ActivaBordeUnique();
+                ActivaBordeUnico();
             }
         }
 
 
         #region Propiedades
 
- 
+
         private Panel _pnlUnique;
         private List<Panel> _pnlPointers;
+        private List<Control> _ctrlActive;
         private Control[] _controls;
         private int _tamaBorde;
-        private bool _mutiple;
+
         private DirecccionBorde _lugarBorde;
-        private bool _colorAuto;
-        private Color _colorManual;
-        private DashStyle _estiloBorde;
+
+        private bool _mutiple;
+        private bool _bordeAutomatico;
+        private bool _backActive;
+
+        private Color _colorBackActive;
+        private Color _colorBorde;
+
+        private DashStyle _tipoBorde;
         private TipoColorAutomatico _tipoColorAutomatico;
- 
+
         public TipoColorAutomatico TipoColorAutomatico
         {
             get => _tipoColorAutomatico;
@@ -359,34 +422,61 @@ namespace _009_MenuPegajoso
                 _pnlPointers.ForEach(panel => ActualizaPanel(panel));
             }
         }
-        public bool ColorAuto
+        public bool BordeAutomatico
         {
-            get => _colorAuto;
+            get => _bordeAutomatico;
             set
             {
-                _colorAuto = value; 
-               
+                _bordeAutomatico = value;
+
             }
         }
 
-        public Color ColorManual
+        public Color ColorBorde
         {
-            get => _colorManual;
+            get => _colorBorde;
             set
             {
-                _colorManual = value;
-                
+                _bordeAutomatico = false;
+                _colorBorde = value;
+
             }
         }
-        
 
-        public DashStyle EstiloBorde
+
+        public DashStyle TipoBorde
         {
-            get => _estiloBorde;
+            get => _tipoBorde;
             set
             {
-                _estiloBorde = value;
+                _tipoBorde = value;
 
+            }
+        }
+
+        public bool BackActive
+        {
+            get
+            {
+                return _backActive;
+            }
+
+            set
+            {
+                _backActive = value;
+            }
+        }
+
+        public Color ColorBackActive
+        {
+            get
+            {
+                return _colorBackActive;
+            }
+
+            set
+            {
+                _colorBackActive = value;
             }
         }
 

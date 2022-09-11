@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace _009_MenuPegajoso
+namespace ControlStatus
 {
     public class BorderControlStatusHover
     {
